@@ -1,0 +1,1 @@
+ex = window.Interface = {}

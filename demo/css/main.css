@@ -1,0 +1,102 @@
+
+
+/* ==========================================================================
+   Author's custom styles
+   ========================================================================== */
+
+@import url(http://fonts.googleapis.com/css?family=Merriweather);
+
+div.center {
+  width: 480px;
+  height: 50px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin-top: -80px;
+  margin-left: -240px;
+}
+
+div.center input#cmd {
+  border: 1px solid #444;
+  font-family: Merriweather;
+  outline: none;
+  width: 480px;
+  height: 40px;
+  font-size: 30px;
+  text-align: bottom;
+
+}
+
+div.center div.below {
+  border-left: 1px solid #444;
+  border-right: 1px solid #444;
+  border-bottom: 1px solid #444;
+  width: 480px;
+  margin-top: -1px;
+  font-family: Merriweather;
+  color: gray;
+  position: absolute;
+}
+
+div.center div.below div.entry {
+  overflow: hidden;
+  padding: 6px 5px;
+  cursor: pointer;
+}
+
+div.center div.below div.entry:first-child {
+  margin-top: 10px;
+}
+
+div.center div.below div.entry:last-child {
+  margin-bottom: 10px;
+}
+
+div.center:not(.history_mode) div.below div.entry:hover {
+  background-color: #eee;
+  border-top: 1px solid gray;
+  border-bottom: 1px solid gray;
+  padding: 5px;
+}
+
+div.center div.below div.entry span.b {
+  font-weight: bold;
+  color: #444;
+}
+
+div.center div.below div.entry span.cmd {
+  display: block;
+}
+
+div.center div.below div.entry span.man_entry {
+  font-style: italic;
+  display: block;
+}
+
+div.center div.above {
+  position: absolute;
+  bottom: 50px;
+  width: 480px;
+  font-family: Merriweather;
+}
+
+div.center div.above div.entry {
+  padding: 5px;
+}
+
+div.center div.above div.entry.error:before {
+  color: #A74143;
+  content: "[error] ";
+}
+
+div.center.history_mode div.above, div.center.history_mode div.below {
+  border: none;
+  border-left: 1px solid #444;
+  border-right: 1px solid #444;
+  color: #444;
+}
+
+
+
+
+
