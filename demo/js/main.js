@@ -12,11 +12,20 @@ $(function() {
   cmdInstance.console = {};
   cmdInstance.register.add('.', {
     all: function() {
-      var lastCmd;
+      var bc, lastCmd;
       console.log("executing:", this.command, this.args);
       lastCmd = this.exc.history[this.exc.history.length - 1];
       if (!(lastCmd !== void 0 && lastCmd.cmd === this.command && lastCmd.args === this.args)) {
-        this.exc.history.push(this.basicCmd);
+        if (this.basicCmd.cmd === Cmd.Tools.command('default') && this.basicCmd.args[0][0] !== Cmd.SPLIT_CHAR) {
+          bc = {
+            cmd: "",
+            args: this.basicCmd.args
+          };
+        } else {
+          bc = this.basicCmd;
+        }
+        console.log("adding to history", bc);
+        this.exc.history.push(bc);
       }
       this.exc.register.root.me.history.track = this.exc.history;
       if (localStorage !== void 0) {
@@ -29,7 +38,14 @@ $(function() {
     "default": function() {
       var str;
       str = this.args.join(" ");
-      return window.location = ["https://encrypted.google.com/search?q=", encodeURIComponent(str)].join('');
+      return ["https://encrypted.google.com/search?q=", encodeURIComponent(str)].join('');
+    },
+    images: {
+      search: function() {
+        var str;
+        str = this.args.join(" ");
+        return window.location = ["https://www.google.com/search?q=", encodeURIComponent(str), "&tbm=isch"].join('');
+      }
     },
     me: {
       history: {
@@ -65,12 +81,5 @@ $(function() {
       }
     }
   });
-  return cmdInstance.manual.addHash({
-    ".man": "Get information about any command.",
-    ".echo": "Any arguments passed to it are returned.",
-    ".me": "Information about the user.",
-    ".data": "A set of data for the user to play with.",
-    ".me.history": "Information about the commands run by the user.",
-    ".me.history.track": "A list of all the commands ran."
-  });
+  return cmdInstance.manual.addArray([[['man'], "Get information about any command."], [['echo'], "Any arguments passed to it are returned."], [['me'], "Information about the user."], [['data'], "A set of data for the user to play with."], [['me', 'history'], "Information about the commands run by the user."], [['me', 'history', 'track'], "A list of all the commands ran."]]);
 });

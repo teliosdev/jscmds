@@ -9,6 +9,84 @@
     }
   })();
 
+  ex.Tools = {
+    merge: function(target, object, deep) {
+      var nam, val;
+      if (deep == null) deep = true;
+      for (nam in object) {
+        val = object[nam];
+        if (typeof val === "object" && deep) {
+          target[nam] = {};
+          ex.Tools.merge(target[nam], val);
+        } else {
+          target[nam] = val;
+        }
+      }
+      return null;
+    },
+    clone: function(target, deep) {
+      var nam, ob, val;
+      if (deep == null) deep = true;
+      ob = {};
+      for (nam in target) {
+        val = target[nam];
+        if (typeof val === "object" && deep) {
+          console.log("recursing:", nam, val);
+          ob[nam] = ex.Tools.clone(target[nam]);
+        } else {
+          ob[nam] = val;
+        }
+      }
+      return ob;
+    },
+    command: function() {
+      var args, c, _i, _len;
+      args = [''];
+      for (_i = 0, _len = arguments.length; _i < _len; _i++) {
+        c = arguments[_i];
+        args.push(c);
+      }
+      return args.join(ex.SPLIT_CHAR);
+    },
+    c: this.command,
+    levenshtein: (function(min, split) {
+      try {
+        split = !"0"[0];
+      } catch (i) {
+        split = true;
+      }
+      return function(a, b) {
+        var I, J, c, d, j, len1, len2;
+        if (a === b) return 0;
+        if (!a.length || !b.length) return b.length || a.length;
+        if (split) {
+          a = a.split("");
+          b = b.split("");
+        }
+        len1 = a.length + 1;
+        len2 = b.length + 1;
+        I = 0;
+        i = 0;
+        d = [[0]];
+        while (++i < len2) {
+          d[0][i] = i;
+        }
+        i = 0;
+        while (++i < len1) {
+          c = a[I];
+          d[i] = [i];
+          j = J = 0;
+          while (++j < len2) {
+            d[i][j] = min(d[I][j] + 1, d[i][J] + 1, d[I][J] + (c !== b[J]));
+            ++J;
+          }
+          ++I;
+        }
+        return d[len1 - 1][len2 - 1];
+      };
+    })(Math.min, false)
+  };
+
   ex.CommandParser = (function() {
 
     function CommandParser(line) {
@@ -101,9 +179,10 @@
       this.errno = 0;
     }
 
-    Register.prototype.add = function(at, object) {
+    Register.prototype.add = function(at, object, sep) {
       var loc;
-      loc = this.resolve(at, 0, true);
+      if (sep == null) sep = '.';
+      loc = this.resolve(at, 0, true, sep);
       if (loc === null) return false;
       return ex.Tools.merge(loc, object);
     };
@@ -134,21 +213,24 @@
       }
     };
 
-    Register.prototype.resolve = function(location, from, create) {
-      var cPos, p, splt, _i, _len;
+    Register.prototype.resolve = function(location, from, create, sep) {
+      var cPos, p, splt, start, _i, _len;
       if (from == null) from = 0;
       if (create == null) create = false;
+      if (sep == null) sep = ex.SPLIT_CHAR;
       cPos = this.root;
-      splt = location.split(ex.SPLIT_CHAR);
+      splt = location.split(sep);
       while (from-- > 0) {
         splt.pop();
       }
+      start = 0;
       for (_i = 0, _len = splt.length; _i < _len; _i++) {
         p = splt[_i];
-        if (p.length === 0) continue;
+        if (p.length === 0 && start === 0) continue;
         if (cPos[p] === void 0 && create) cPos[p] = {};
         cPos = cPos[p];
         if (cPos === void 0) return null;
+        start++;
       }
       if (cPos === void 0) {
         return null;
@@ -200,11 +282,24 @@
     }
 
     Manual.prototype.add = function(location, info) {
-      return this.entries[location] = info;
+      console.log("adding entry to", location, "data", info);
+      this.entries[location] = info;
+      return this;
     };
 
     Manual.prototype.addHash = function(hash) {
       return ex.Tools.merge(this.entries, hash);
+    };
+
+    Manual.prototype.addArray = function(array) {
+      var e, _i, _len, _results;
+      _results = [];
+      for (_i = 0, _len = array.length; _i < _len; _i++) {
+        e = array[_i];
+        console.warn(e[0], e[1]);
+        _results.push(this.add(ex.Tools.command.apply(ex.Tools, e[0]), e[1]));
+      }
+      return _results;
     };
 
     Manual.prototype.retreive = function(location) {
@@ -217,7 +312,7 @@
 
   })();
 
-  ex.MAX_LEVEN_DISTANCE = 10;
+  ex.MAX_LEVEN_DISTANCE = 3;
 
   ex.DEFAULT_ACTION = '.default';
 
@@ -241,8 +336,8 @@
       var cmd, r;
       cmd = this._resolveCommand(line);
       r = this.register.run(cmd.command, cmd.args, cmd);
-      if (this.register.resolve(".all") !== null) {
-        this.register.run(".all", cmd.args, cmd);
+      if (this.register.resolve(ex.Tools.command('all')) !== null) {
+        this.register.run(ex.Tools.command('all'), cmd.args, cmd);
       }
       return r;
     };
@@ -268,6 +363,7 @@
     Base.prototype.autoComplete = function(line, cmd) {
       var distances, e, full, i, o, out, p, parts, str, _, _len;
       if (cmd == null) cmd = null;
+      if (line[0] !== ex.SPLIT_CHAR) return [];
       if (cmd === null) cmd = this._resolveCommand(line);
       o = this.register.resolve(cmd.command);
       parts = cmd.command.split(ex.SPLIT_CHAR);
@@ -320,73 +416,5 @@
     return Base;
 
   })();
-
-  ex.Tools = {
-    merge: function(target, object, deep) {
-      var nam, val;
-      if (deep == null) deep = true;
-      for (nam in object) {
-        val = object[nam];
-        if (typeof val === "object" && deep) {
-          target[nam] = {};
-          ex.Tools.merge(target[nam], val);
-        } else {
-          target[nam] = val;
-        }
-      }
-      return null;
-    },
-    clone: function(target, deep) {
-      var nam, ob, val;
-      if (deep == null) deep = true;
-      ob = {};
-      for (nam in target) {
-        val = target[nam];
-        if (typeof val === "object" && deep) {
-          console.log("recursing:", nam, val);
-          ob[nam] = ex.Tools.clone(target[nam]);
-        } else {
-          ob[nam] = val;
-        }
-      }
-      return ob;
-    },
-    levenshtein: (function(min, split) {
-      try {
-        split = !"0"[0];
-      } catch (i) {
-        split = true;
-      }
-      return function(a, b) {
-        var I, J, c, d, j, len1, len2;
-        if (a === b) return 0;
-        if (!a.length || !b.length) return b.length || a.length;
-        if (split) {
-          a = a.split("");
-          b = b.split("");
-        }
-        len1 = a.length + 1;
-        len2 = b.length + 1;
-        I = 0;
-        i = 0;
-        d = [[0]];
-        while (++i < len2) {
-          d[0][i] = i;
-        }
-        i = 0;
-        while (++i < len1) {
-          c = a[I];
-          d[i] = [i];
-          j = J = 0;
-          while (++j < len2) {
-            d[i][j] = min(d[I][j] + 1, d[i][J] + 1, d[I][J] + (c !== b[J]));
-            ++J;
-          }
-          ++I;
-        }
-        return d[len1 - 1][len2 - 1];
-      };
-    })(Math.min, false)
-  };
 
 }).call(this);

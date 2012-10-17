@@ -1,4 +1,4 @@
-ex.MAX_LEVEN_DISTANCE = 10
+ex.MAX_LEVEN_DISTANCE = 3
 ex.DEFAULT_ACTION     = '.default' # .all is taken too
 ex.SPLIT_CHAR         = '.'
 
@@ -17,8 +17,8 @@ class ex.Base
   receiveCommand: (line)->
     cmd = @_resolveCommand line
     r = @register.run cmd.command, cmd.args, cmd
-    if @register.resolve(".all") isnt null
-      @register.run ".all", cmd.args, cmd
+    if @register.resolve(ex.Tools.command 'all') isnt null
+      @register.run ex.Tools.command('all'), cmd.args, cmd
 
     r
 
@@ -38,6 +38,8 @@ class ex.Base
   t: @prototype.tryCommand
 
   autoComplete: (line,cmd=null)->
+    # the line doesn't start with the command character, so we'll just return nothing
+    return [] unless line[0] is ex.SPLIT_CHAR
     cmd = @_resolveCommand line unless cmd isnt null
     o = @register.resolve cmd.command
     #return [] if o isnt null or cmd.command is ex.DEFAULT_ACTION
@@ -81,3 +83,15 @@ class ex.Base
       args: cmd.args
     }
     cmd
+
+#cmd = {
+#  command: ".echo",
+#  args: ["hello", "world"],
+#  basicCmd: {
+#    cmd: ".echo",
+#    args: ["hello", "world"]
+#  },
+#  exc: Base
+#}
+
+#cmd.exc.r(".echo .echo hello world")

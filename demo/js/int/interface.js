@@ -57,7 +57,7 @@
       v = this.elements.input.val();
       if (v.length === 0) return console.log("v.length:", v.length);
       if (this.inHistoryMode) this._setHistoryMode(false, false);
-      a = cmdInstance.a(v);
+      a = cmdInstance.a(v).slice(0, 6);
       this.elements.below.children().remove();
       _results = [];
       for (i = 0, _len = a.length; i < _len; i++) {

@@ -20,6 +20,14 @@ ex.Tools =
 
     ob
 
+  command: ->
+    args = ['']
+    for c in arguments
+      args.push c
+    args.join ex.SPLIT_CHAR
+
+  c: @command
+
   levenshtein: (((min, split)->
     try
       split = !("0")[0]

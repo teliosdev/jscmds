@@ -10,9 +10,7 @@ b.register.add('.', {
   },
   string_tests: {
     deeper: "hi",
-    no: "gay",
     watermelons: "nooooo",
-    fuck_you: "test",
     test: function() { return this.exc.r('.string_tests.no'); }
   }
 });

@@ -16,7 +16,7 @@ class ex.Base
     v = @elements.input.val()
     return console.log("v.length:", v.length) if v.length is 0
     @_setHistoryMode false, false if @inHistoryMode
-    a = cmdInstance.a(v)
+    a = cmdInstance.a(v)[0..5]
     @elements.below.children().remove()
     for n, i in a
       m = cmdInstance.manual.find(n)

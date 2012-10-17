@@ -4,8 +4,8 @@ class ex.Register
     @root = {}
     @errno = 0
 
-  add: (at, object)->
-    loc = @resolve at, 0, true
+  add: (at, object, sep='.')->
+    loc = @resolve at, 0, true, sep
     return false if loc is null
     ex.Tools.merge loc, object
 
@@ -31,16 +31,18 @@ class ex.Register
     else
       loc
 
-  resolve: (location, from=0, create=false)->
+  resolve: (location, from=0, create=false, sep=ex.SPLIT_CHAR)->
     cPos = @root
-    splt = location.split(ex.SPLIT_CHAR)
+    splt = location.split(sep)
     splt.pop() while from-- > 0
+    start = 0
     for p in splt
-      continue if p.length is 0
+      continue if p.length is 0 and start is 0
       if cPos[p] is undefined and create
         cPos[p] = {}
       cPos = cPos[p]
       return null if cPos is undefined
+      start++
     if cPos is undefined
       null
     else
